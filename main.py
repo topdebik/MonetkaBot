@@ -24,6 +24,8 @@ horoscope_chat_id = consts.horoscope_chat_id  # auto send horoscope to defined c
 
 @bot.message_handler(commands=["horoscope"])
 async def send_horoscope(message):
+    if message.chat.id in consts.ban_list:
+        return
     photos = await vk_fetcher.fetch_horoscopes()
     await bot.send_media_group(message.chat.id, photos)
     print(message.chat.id, message.from_user.username, "/horoscope")
@@ -31,6 +33,8 @@ async def send_horoscope(message):
 
 @bot.message_handler(commands=["monetka"])
 async def send_monetka(message):
+    if message.chat.id in consts.ban_list:
+        return
     result = await throw_monetka()
     await bot.reply_to(message, result)
     print(message.chat.id, message.from_user.username, "/monetka", result)
@@ -38,6 +42,8 @@ async def send_monetka(message):
 
 @bot.message_handler(commands=["start", "help"])
 async def send_help(message):
+    if message.chat.id in consts.ban_list:
+        return
     await bot.reply_to(
         message,
         """
