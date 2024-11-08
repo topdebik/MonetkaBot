@@ -6,6 +6,7 @@ from datetime import date
 from PIL import Image
 from pytesseract import image_to_string
 import requests
+import asyncio
 from io import BytesIO
 import consts  # secret constants
 
@@ -25,13 +26,21 @@ MONTHS = [
     "декабря",
 ]
 
-HOROSCOPES = ["дева", "лева", "лев", "рак", "овен", "скорпион", "весы", "весь]"]
+HOROSCOPES = [
+    "дева",
+    "лев",
+    "рак",
+    "овен",
+    "скорпион",
+    "весы",
+]
 
 
 async def fetch_horoscopes():
     vk = API(access_token=TOKEN, v="5.131")
 
     posts = vk.wall.get(owner_id="-182875281", count=20)["items"]
+    await asyncio.sleep(0)
 
     current_date = date.today()
     current_month = MONTHS[current_date.month - 1]
@@ -61,17 +70,21 @@ async def fetch_horoscopes():
     photos = []
     for photo_url in photo_urls:
         response = requests.get(photo_url)
+        await asyncio.sleep(0)
         photos.append(BytesIO(response.content))
 
     photos_to_send = []
     for photo in photos:
         image = Image.open(photo)
+        processed_image = image.point(lambda x: x > 220 and 255)
+
         image_text = (
-            image_to_string(image, lang="rus")
+            image_to_string(processed_image, lang="rus")
             .replace(" ", "")
             .replace("\n", "")
             .lower()[:20]
         )
+        await asyncio.sleep(0)
 
         for horoscope_name in HOROSCOPES:
             if horoscope_name in image_text:

@@ -25,10 +25,6 @@ horoscope_chat_id = consts.horoscope_chat_id #auto send horoscope to defined cha
 async def send_horoscope(message):
     photos = await vk_fetcher.fetch_horoscopes()
     await bot.send_media_group(message.chat.id, photos)
-    await bot.send_message(
-        message.chat.id,
-        "Гороскоп работает в тестовом режиме. Если Вы заметили недостающие гороскопы, или гороскоп на очередной день не пришел - бомбите личку @AlexanderSemichastnov",
-    )
     print(message.chat.id, message.from_user.username, "/horoscope")
 
 
