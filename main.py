@@ -5,6 +5,7 @@ from telebot.async_telebot import AsyncTeleBot
 from random import choices
 import datetime
 import vk_fetcher
+from math import ceil
 import consts  # secret constants
 
 
@@ -18,7 +19,7 @@ async def throw_monetka():
 
 bot = AsyncTeleBot(consts.TELEGRAM_TOKEN)
 
-horoscope_chat_id = consts.horoscope_chat_id #auto send horoscope to defined chat
+horoscope_chat_id = consts.horoscope_chat_id  # auto send horoscope to defined chat
 
 
 @bot.message_handler(commands=["horoscope"])
@@ -57,13 +58,8 @@ async def ingore_messages(message):
 async def wait_until_new_day():
     dt = datetime.datetime.now()
     tomorrow = dt + datetime.timedelta(days=1)
-    sleep_time = (
-        int(
-            (
-                datetime.datetime.combine(tomorrow, datetime.time.min) - dt
-            ).total_seconds()
-        )
-        + 60
+    sleep_time = ceil(
+        (datetime.datetime.combine(tomorrow, datetime.time.min) - dt).total_seconds()
     )
     await asyncio.sleep(sleep_time)
 

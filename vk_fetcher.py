@@ -3,6 +3,7 @@
 from vk import API
 from telebot.types import InputMediaPhoto
 from datetime import date
+from time import time
 from PIL import Image
 from pytesseract import image_to_string
 import requests
@@ -35,12 +36,16 @@ HOROSCOPES = [
     "весы",
 ]
 
+def rtime():
+    return round(time(), 3)
 
 async def fetch_horoscopes():
+    print(rtime(), "started script")
     vk = API(access_token=TOKEN, v="5.131")
 
     posts = vk.wall.get(owner_id="-182875281", count=20)["items"]
     await asyncio.sleep(0)
+    print(rtime(), "got posts")
 
     current_date = date.today()
     current_month = MONTHS[current_date.month - 1]
@@ -67,16 +72,26 @@ async def fetch_horoscopes():
         ]
         photo_urls.extend(photo_urls_in_post)
 
+    print(rtime(), "filtered posts")
+
     photos = []
     for photo_url in photo_urls:
         response = requests.get(photo_url)
         await asyncio.sleep(0)
         photos.append(BytesIO(response.content))
 
+    print(rtime(), "downloaded photos", "\n")
+
     photos_to_send = []
+    photo_num = 0
     for photo in photos:
         image = Image.open(photo)
         processed_image = image.point(lambda x: x > 220 and 255)
+        print(
+            rtime(),
+            "processed image",
+            photo_num
+        )
 
         image_text = (
             image_to_string(processed_image, lang="rus")
@@ -85,6 +100,11 @@ async def fetch_horoscopes():
             .lower()[:20]
         )
         await asyncio.sleep(0)
+        print(
+            rtime(),
+            "OCR image",
+            photo_num
+        )
 
         for horoscope_name in HOROSCOPES:
             if horoscope_name in image_text:
@@ -92,5 +112,12 @@ async def fetch_horoscopes():
                 image.save(buf, format="JPEG")
                 photos_to_send.append(InputMediaPhoto(media=buf.getvalue()))
                 break
+        print(
+            rtime(),
+            "filtered image",
+            photo_num,
+            "\n"
+        )
+        photo_num += 1
 
     return photos_to_send
