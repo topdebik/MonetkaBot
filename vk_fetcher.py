@@ -87,6 +87,10 @@ async def fetch_horoscopes():
     for photo in photos:
         image = Image.open(photo)
         processed_image = image.point(lambda x: x > 220 and 255)
+        image_width, image_height = processed_image.size
+        crop_box = (image_width // 7, image_height // 18, image_width // 6 * 4, image_height // 19 * 3)
+        processed_image = processed_image.crop(crop_box)
+        processed_image.show()
         print(
             rtime(),
             "processed image",
@@ -99,6 +103,7 @@ async def fetch_horoscopes():
             .replace("\n", "")
             .lower()[:20]
         )
+        print(image_text)
         await asyncio.sleep(0)
         print(
             rtime(),
