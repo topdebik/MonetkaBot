@@ -19,7 +19,9 @@ async def throw_monetka():
 
 bot = AsyncTeleBot(consts.TELEGRAM_TOKEN)
 
-horoscope_chat_id = consts.horoscope_chat_id  # auto send horoscope to defined chat
+horoscope_chat_ids = (
+    consts.horoscope_chat_ids
+)  # chats to auto send horoscope at midnight
 
 
 @bot.message_handler(commands=["horoscope"])
@@ -67,15 +69,16 @@ async def wait_until_new_day():
     sleep_time = ceil(
         (datetime.datetime.combine(tomorrow, datetime.time.min) - dt).total_seconds()
     )
-    await asyncio.sleep(sleep_time)
+    await asyncio.sleep(sleep_time) #wait until the beginning of new day
 
 
 async def run_horoscope_polling():
     while True:
         await wait_until_new_day()
         photos = await vk_fetcher.fetch_horoscopes()
-        await bot.send_media_group(horoscope_chat_id, photos)
-        print(horoscope_chat_id, "on_time_schedule", "/horoscope")
+        for chat_id in horoscope_chat_ids:
+            await bot.send_media_group(chat_id, photos)
+            print(chat_id, "on_time_schedule", "/horoscope")
 
 
 loop = asyncio.new_event_loop()
