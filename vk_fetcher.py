@@ -3,15 +3,14 @@
 from vk import API
 from telebot.types import InputMediaPhoto
 from datetime import date
-from time import time
 from PIL import Image
 from pytesseract import image_to_string
 import requests
 import asyncio
 from io import BytesIO
+import time
 import consts  # secret constants
 
-TOKEN = consts.VK_TOKEN
 MONTHS = [
     "января",
     "февраля",
@@ -27,23 +26,25 @@ MONTHS = [
     "декабря",
 ]
 
-HOROSCOPES = [
-    "дева",
-    "лев",
-    "рак",
-    "овен",
-    "скорпион",
-    "весы",
-]
+HOROSCOPES = consts.horoscopes  # horoscopes to filter
+
 
 def rtime():
-    return round(time(), 3)
+    return round(time.time(), 3)
+
 
 async def fetch_horoscopes():
     print(rtime(), "started script")
-    vk = API(access_token=TOKEN, v="5.131")
+    try:
+        vk = API(access_token=consts.VK_TOKEN, v="5.131")
 
-    posts = vk.wall.get(owner_id="-182875281", count=20)["items"]
+        posts = vk.wall.get(owner_id="-182875281", count=20)["items"]
+    except:
+        consts.update_token()  # secret function to avoid VK fixing this
+
+        vk = API(access_token=consts.VK_TOKEN, v="5.131")
+
+        posts = vk.wall.get(owner_id="-182875281", count=20)["items"]
     await asyncio.sleep(0)
     print(rtime(), "got posts")
 
@@ -88,14 +89,14 @@ async def fetch_horoscopes():
         image = Image.open(photo)
         processed_image = image.point(lambda x: x > 220 and 255)
         image_width, image_height = processed_image.size
-        crop_box = (image_width // 7, image_height // 18, image_width // 6 * 4, image_height // 19 * 3)
-        processed_image = processed_image.crop(crop_box)
-        processed_image.show()
-        print(
-            rtime(),
-            "processed image",
-            photo_num
+        crop_box = (
+            image_width // 7,
+            image_height // 18,
+            image_width // 6 * 4,
+            image_height // 19 * 3,
         )
+        processed_image = processed_image.crop(crop_box)
+        print(rtime(), "processed image", photo_num)
 
         image_text = (
             image_to_string(processed_image, lang="rus")
@@ -105,11 +106,7 @@ async def fetch_horoscopes():
         )
         print(image_text)
         await asyncio.sleep(0)
-        print(
-            rtime(),
-            "OCR image",
-            photo_num
-        )
+        print(rtime(), "OCR image", photo_num)
 
         for horoscope_name in HOROSCOPES:
             if horoscope_name in image_text:
@@ -117,12 +114,7 @@ async def fetch_horoscopes():
                 image.save(buf, format="JPEG")
                 photos_to_send.append(InputMediaPhoto(media=buf.getvalue()))
                 break
-        print(
-            rtime(),
-            "filtered image",
-            photo_num,
-            "\n"
-        )
+        print(rtime(), "filtered image", photo_num, "\n")
         photo_num += 1
 
     return photos_to_send
