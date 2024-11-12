@@ -5,6 +5,7 @@ from telebot.async_telebot import AsyncTeleBot
 from random import choices
 import datetime
 import vk_fetcher
+from math import ceil
 import consts  # secret constants
 
 
@@ -18,11 +19,15 @@ async def throw_monetka():
 
 bot = AsyncTeleBot(consts.TELEGRAM_TOKEN)
 
-horoscope_chat_id = consts.horoscope_chat_id #auto send horoscope to defined chat
+horoscope_chat_ids = (
+    consts.horoscope_chat_ids
+)  # chats to auto send horoscope at midnight
 
 
 @bot.message_handler(commands=["horoscope"])
 async def send_horoscope(message):
+    if message.chat.id in consts.ban_list:
+        return
     photos = await vk_fetcher.fetch_horoscopes()
     await bot.send_media_group(message.chat.id, photos)
     print(message.chat.id, message.from_user.username, "/horoscope")
@@ -30,6 +35,8 @@ async def send_horoscope(message):
 
 @bot.message_handler(commands=["monetka"])
 async def send_monetka(message):
+    if message.chat.id in consts.ban_list:
+        return
     result = await throw_monetka()
     await bot.reply_to(message, result)
     print(message.chat.id, message.from_user.username, "/monetka", result)
@@ -37,6 +44,8 @@ async def send_monetka(message):
 
 @bot.message_handler(commands=["start", "help"])
 async def send_help(message):
+    if message.chat.id in consts.ban_list:
+        return
     await bot.reply_to(
         message,
         """
@@ -57,23 +66,19 @@ async def ingore_messages(message):
 async def wait_until_new_day():
     dt = datetime.datetime.now()
     tomorrow = dt + datetime.timedelta(days=1)
-    sleep_time = (
-        int(
-            (
-                datetime.datetime.combine(tomorrow, datetime.time.min) - dt
-            ).total_seconds()
-        )
-        + 60
+    sleep_time = ceil(
+        (datetime.datetime.combine(tomorrow, datetime.time.min) - dt).total_seconds()
     )
-    await asyncio.sleep(sleep_time)
+    await asyncio.sleep(sleep_time) #wait until the beginning of new day
 
 
 async def run_horoscope_polling():
     while True:
         await wait_until_new_day()
         photos = await vk_fetcher.fetch_horoscopes()
-        await bot.send_media_group(horoscope_chat_id, photos)
-        print(horoscope_chat_id, "on_time_schedule", "/horoscope")
+        for chat_id in horoscope_chat_ids:
+            await bot.send_media_group(chat_id, photos)
+            print(chat_id, "on_time_schedule", "/horoscope")
 
 
 loop = asyncio.new_event_loop()
