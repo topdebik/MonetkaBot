@@ -29,12 +29,7 @@ MONTHS = [
 HOROSCOPES = consts.horoscopes  # horoscopes to filter
 
 
-def rtime():
-    return round(time.time(), 3)
-
-
 async def fetch_horoscopes():
-    print(rtime(), "started script")
     try:
         vk = API(access_token=consts.VK_TOKEN, v="5.131")
 
@@ -46,7 +41,6 @@ async def fetch_horoscopes():
 
         posts = vk.wall.get(owner_id="-182875281", count=20)["items"]
     await asyncio.sleep(0)
-    print(rtime(), "got posts")
 
     current_date = date.today()
     current_month = MONTHS[current_date.month - 1]
@@ -73,15 +67,11 @@ async def fetch_horoscopes():
         ]
         photo_urls.extend(photo_urls_in_post)
 
-    print(rtime(), "filtered posts")
-
     photos = []
     for photo_url in photo_urls:
         response = requests.get(photo_url)
         await asyncio.sleep(0)
         photos.append(BytesIO(response.content))
-
-    print(rtime(), "downloaded photos", "\n")
 
     photos_to_send = []
     photo_num = 0
@@ -96,7 +86,6 @@ async def fetch_horoscopes():
             image_height // 19 * 3,
         )
         processed_image = processed_image.crop(crop_box)
-        print(rtime(), "processed image", photo_num)
 
         image_text = (
             image_to_string(processed_image, lang="rus")
@@ -104,9 +93,7 @@ async def fetch_horoscopes():
             .replace("\n", "")
             .lower()[:20]
         )
-        print(image_text)
         await asyncio.sleep(0)
-        print(rtime(), "OCR image", photo_num)
 
         for horoscope_name in HOROSCOPES:
             if horoscope_name in image_text:
@@ -114,7 +101,6 @@ async def fetch_horoscopes():
                 image.save(buf, format="JPEG")
                 photos_to_send.append(InputMediaPhoto(media=buf.getvalue()))
                 break
-        print(rtime(), "filtered image", photo_num, "\n")
         photo_num += 1
 
     return photos_to_send
