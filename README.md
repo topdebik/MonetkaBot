@@ -5,7 +5,8 @@ Interacts with user/users on Russian
 ## Functions
 /help - prints help message  
 /monetka - throws a coin  
-/horoscope - fetches horoscope from VK wall (https://vk.com/astrogks) and filters only needed pictures using OCR
+/horoscope - fetches horoscope from VK wall (https://vk.com/astrogks) and filters only needed pictures using OCR  
+/478_story - tells a story about 478 bus
 
 ## Dependencies
 Python libraries - `aiohttp`, `pyTelegramBotAPI`, `vk`, `pytesseract`, `pillow`  
