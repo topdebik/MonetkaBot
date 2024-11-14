@@ -5,6 +5,7 @@ from telebot.async_telebot import AsyncTeleBot
 from random import choices
 import datetime
 import vk_fetcher
+import gemini_fetcher
 from math import ceil
 import consts  # secret constants
 
@@ -22,6 +23,16 @@ bot = AsyncTeleBot(consts.TELEGRAM_TOKEN)
 horoscope_chat_ids = (
     consts.horoscope_chat_ids
 )  # chats to auto send horoscope at midnight
+
+
+@bot.message_handler(commands=["478_story"])
+async def send_horoscope(message):
+    if message.chat.id in consts.ban_list:
+        return
+    await bot.send_chat_action(message.chat.id, action="typing")
+    story = await gemini_fetcher.get_478_story()
+    await bot.reply_to(message, story)
+    print(message.chat.id, message.from_user.username, "/478_story")
 
 
 @bot.message_handler(commands=["horoscope"])
@@ -69,7 +80,7 @@ async def wait_until_new_day():
     sleep_time = ceil(
         (datetime.datetime.combine(tomorrow, datetime.time.min) - dt).total_seconds()
     )
-    await asyncio.sleep(sleep_time) #wait until the beginning of new day
+    await asyncio.sleep(sleep_time)  # wait until the beginning of new day
 
 
 async def run_horoscope_polling():
