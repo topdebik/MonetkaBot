@@ -5,7 +5,7 @@ from telebot.async_telebot import AsyncTeleBot
 from random import choices
 import datetime
 import vk_fetcher
-import gemini_fetcher
+import llama_fetcher
 from math import ceil
 import consts  # secret constants
 
@@ -30,7 +30,7 @@ async def send_horoscope(message):
     if message.chat.id in consts.ban_list:
         return
     await bot.send_chat_action(message.chat.id, action="typing")
-    story = await gemini_fetcher.get_478_story()
+    story = await llama_fetcher.get_478_story()
     await bot.reply_to(message, story)
     print(message.chat.id, message.from_user.username, "/478_story")
 
