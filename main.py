@@ -81,6 +81,8 @@ async def wait_until_new_day():
     sleep_time = ceil(
         (datetime.datetime.combine(tomorrow, datetime.time.min) - dt).total_seconds()
     )
+    with open("is_horoscope_sent", "w") as f:
+        f.write("2")
     await asyncio.sleep(sleep_time)  # wait until the beginning of new day
 
 
@@ -91,16 +93,19 @@ async def run_horoscope_polling():
                 is_horoscope_sent = int(f.read())
         except FileNotFoundError:
             is_horoscope_sent = 1
-        if is_horoscope_sent:
+        if is_horoscope_sent == 1:
             with open("is_horoscope_sent", "w") as f:
                 f.write("0")
             await wait_until_new_day()
-        photos = await vk_fetcher.fetch_horoscopes()
-        for chat_id in horoscope_chat_ids:
-            await bot.send_media_group(chat_id, photos)
-            print(chat_id, "on_time_schedule", "/horoscope")
-        with open("is_horoscope_sent", "w") as f:
-            f.write("1")
+        with open("is_horoscope_sent", "r") as f:
+            is_horoscope_sent = int(f.read())
+        if is_horoscope_sent == 2:
+            photos = await vk_fetcher.fetch_horoscopes()
+            for chat_id in horoscope_chat_ids:
+                await bot.send_media_group(chat_id, photos)
+                print(chat_id, "on_time_schedule", "/horoscope")
+            with open("is_horoscope_sent", "w") as f:
+                f.write("1")
 
 
 loop = asyncio.new_event_loop()

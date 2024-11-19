@@ -2,3 +2,4 @@ __pycache__
 consts.py
 logo.jpg
 *.gguf
+is_horoscope_sent
