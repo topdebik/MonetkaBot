@@ -86,11 +86,21 @@ async def wait_until_new_day():
 
 async def run_horoscope_polling():
     while True:
-        await wait_until_new_day()
+        try:
+            with open("is_horoscope_sent", "r") as f:
+                is_horoscope_sent = int(f.read())
+        except FileNotFoundError:
+            is_horoscope_sent = 1
+        if is_horoscope_sent:
+            with open("is_horoscope_sent", "w") as f:
+                f.write("0")
+            await wait_until_new_day()
         photos = await vk_fetcher.fetch_horoscopes()
         for chat_id in horoscope_chat_ids:
             await bot.send_media_group(chat_id, photos)
             print(chat_id, "on_time_schedule", "/horoscope")
+        with open("is_horoscope_sent", "w") as f:
+            f.write("1")
 
 
 loop = asyncio.new_event_loop()
