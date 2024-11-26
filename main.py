@@ -95,7 +95,7 @@ async def run_horoscope_polling():
         except FileNotFoundError:
             is_horoscope_sent = 1
 
-        if is_horoscope_sent == 1:
+        if is_horoscope_sent == 1 or is_horoscope_sent == 0:
             with open("is_horoscope_sent", "w") as f:
                 f.write("0")
             await wait_until_new_day()
